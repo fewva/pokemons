@@ -53,6 +53,8 @@ class RandomPokemonPage extends StatelessWidget {
                       name: 'height',
                       info:_pokemon.weight.toString()
                     ),
+                    const SizedBox(height: 50),
+                    const Center(child: Text('pull down to refresh'))
                   ],
                 ),
               );
