@@ -61,7 +61,7 @@ class RandomPokemonPage extends StatelessWidget {
             if (state is PokemonLoadError)
               return Center(child: Text(state.error.toString()));
 
-            return const Text("idk what's wrong");
+            return const Center(child: const Text("idk what's wrong"));
           },
         ),
       ),
