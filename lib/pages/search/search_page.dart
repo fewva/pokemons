@@ -17,7 +17,7 @@ class SearchPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasData)
             return BlocProvider(
-              create: (context) => SearchblocBloc(pokemons: snapshot.data),
+              create: (context) => SearchBloc(pokemons: snapshot.data),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -58,7 +58,7 @@ class Search extends StatelessWidget {
         hintStyle: TextStyle(height: 1.5, fontSize: 16, fontWeight: FontWeight.w500)
       ),
       onChanged: (value) {
-        BlocProvider.of<SearchblocBloc>(context).add(SearchEvent(eventData: value));
+        BlocProvider.of<SearchBloc>(context).add(SearchEvent(eventData: value));
       },
     );
   }
@@ -69,19 +69,19 @@ class PokemonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SearchblocBloc, SearchState>(
+    return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, state) {
         debugPrint('STATE IS: ' + state.toString());
         if (state is SearchInitial) {
           return  Expanded(
             child: ListView.separated(
-              itemCount: BlocProvider.of<SearchblocBloc>(context).pokemons.length,
+              itemCount: BlocProvider.of<SearchBloc>(context).pokemons.length,
               separatorBuilder: (context, index) =>
                   SizedBox(height: 10),
               itemBuilder: (context, index) {
                 return Container(
                   child: Text(
-                    BlocProvider.of<SearchblocBloc>(context).pokemons[index].name,
+                    BlocProvider.of<SearchBloc>(context).pokemons[index].name,
                     style: _listItemTextStyle
                   ),
                 );

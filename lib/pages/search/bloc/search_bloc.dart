@@ -9,10 +9,10 @@ import 'package:pokemons/models/pokemon.dart';
 part 'search_event.dart';
 part 'search_state.dart';
 
-class SearchblocBloc extends Bloc<SearchBlocEvent, SearchState> {
+class SearchBloc extends Bloc<SearchBlocEvent, SearchState> {
 
   final List <Pokemon> pokemons;
-  SearchblocBloc({this.pokemons}) : super(SearchInitial());
+  SearchBloc({this.pokemons}) : super(SearchInitial());
 
   @override
   Stream<SearchState> mapEventToState(
