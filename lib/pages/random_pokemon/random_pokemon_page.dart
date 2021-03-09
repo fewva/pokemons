@@ -1,70 +1,37 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pokemons/bloc/random_pokemon_bloc.dart';
 import 'package:pokemons/components/custom_app_bar.dart';
-import 'package:pokemons/databases/pokemons_database.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:pokemons/models/pokemon.dart';
-import 'package:pokemons/network/network.dart';
 import 'package:pokemons/pages/random_pokemon/decorated_characteristic.dart';
 
-
-class RandomPokemonPage extends StatefulWidget {
-  RandomPokemonPage({Key key}) : super(key: key);
-
-  @override
-  _RandomPokemonPageState createState() => _RandomPokemonPageState();
-}
-
-class _RandomPokemonPageState extends State<RandomPokemonPage> {
-
-  final StreamController _streamController = StreamController();
-
-  @override
-  void dispose() {
-    super.dispose();
-    _streamController.close();
-  }
-
+class RandomPokemonPage extends StatelessWidget {
+  const RandomPokemonPage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
-    _streamController.addStream(getPokemon().asStream());
-
     return Scaffold(
       appBar: CustomAppBar(title: 'Random pokemon', showBackArrow: true),
-      body: StreamBuilder(
-        // future: getPokemon(),
-        stream: _streamController.stream,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.hasError)
-            return Text(snapshot.error.toString());
-          if (!snapshot.hasData)
-            return const Center(child: const CircularProgressIndicator());
-          else {
-            
-            Pokemon _pokemon = snapshot.data;
-
-            return LiquidPullToRefresh(
-              onRefresh: () async {
-                try {
-                  var _newPokemon = await getPokemon();
-                  _streamController.add(_newPokemon); 
-                } catch (e) {
-                  print(e);
-                  ScaffoldMessenger.of(context).showSnackBar(_snackBar(e));
-                }
-              },
-              animSpeedFactor: 2,
-              height: 20,
-              color: Colors.black,
-              springAnimationDurationInMilliseconds: 300,
-              showChildOpacityTransition: false,
-              child: Container(
+      body: LiquidPullToRefresh(
+        animSpeedFactor: 2,
+        height: 20,
+        color: Colors.black,
+        springAnimationDurationInMilliseconds: 300,
+        showChildOpacityTransition: false,
+        onRefresh: () async {
+          BlocProvider.of<RandomPokemonBloc>(context).add(GetRandomPokemonEvent());
+        },
+        child: BlocBuilder<RandomPokemonBloc, RandomPokemonState>(
+          builder: (context, state) {
+            print('state is: ' + state.toString());
+            if (state is PokemonIsLoading)
+              return const Center(child: CircularProgressIndicator());
+              
+            if (state is PokemonLodaingCompleted) {
+              var _pokemon = state.pokemon;
+              return Padding(
                 padding: const EdgeInsets.all(16),
                 child: ListView(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DecoratedCharacteristic(
                       name: 'id',
@@ -88,50 +55,16 @@ class _RandomPokemonPageState extends State<RandomPokemonPage> {
                     ),
                   ],
                 ),
-              ),
-            );
-          }
-        },
+              );
+            }
+
+            if (state is PokemonLoadError)
+              return Center(child: Text(state.error.toString()));
+
+            return const Text("idk what's wrong");
+          },
+        ),
       ),
     );
   }
 }
-
-
-Future <Pokemon> getPokemon() async {
-
-  var db = PokemonsDB();
-
-  Pokemon pokemon;
-
-  pokemon = await db.getRandomPokemon();
-
-  // checking one of the key parameters to see if the full data was loaded
-  if (pokemon.isDefault != null)  return pokemon;
-
-  else {
-
-    pokemon = await Network.getPokemonByID(id: pokemon.id);
-    await db.updatePokemon(pokemon);
-
-    print('updated');
-    return pokemon;
-
-  }
-
-}
-
-SnackBar _snackBar(error) {
-  return SnackBar(
-    backgroundColor: Colors.white,
-    elevation: 10,
-    content: Text(error.toString(), style: TextStyle(color: Colors.black)),
-    action: SnackBarAction(
-      label: 'ok',
-      textColor: Colors.redAccent,
-      onPressed: () {
-        print('Error');
-      },
-    ),
-  );
-} 
